@@ -29,7 +29,7 @@ sudo apt install python3 bluez-tools pulseaudio-utils obexftp bluetooth
 # (On Arch: sudo pacman -S bluez bluez-utils pulseaudio obexftp)
 
 # Clone & Run
-git clone https://github.com/your-repo/BlueT.git
+git clone https://github.com/manigpj/BlueT.git
 cd BlueT
 sudo python3 BlueT.py
 ```
