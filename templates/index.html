@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueT // ADVANCED OPS</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050508;
+            --panel-bg: rgba(15, 15, 20, 0.85);
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #00ff9d;
+            --neon-red: #ff3e3e;
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --player-bg: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(188, 19, 254, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow-y: hidden;
+            overflow-x: auto;
+            /* Allow horizontal scroll for PC layout on phone */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            min-width: 1200px;
+            /* Force PC header width */
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+        }
+
+        @keyframes charge {
+            0% {
+                transform: scaleX(0);
+            }
+
+            100% {
+                transform: scaleX(1);
+            }
+        }
+
+        .system-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.4;
+            }
+        }
+
+        /* --- Main Layout --- */
+        main {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+            overflow: hidden;
+            min-width: 1200px;
+            /* Force PC desktop width for consistent look */
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--neon-purple);
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- Radar Section --- */
+        .radar-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 242, 255, 0.2);
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #radarCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--neon-blue));
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            animation: sweep 4s linear infinite;
+        }
+
+        @keyframes sweep {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- Device List --- */
+        #device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .device-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--neon-blue);
+            transform: translateX(5px);
+        }
+
+        .device-card.active {
+            border-color: var(--neon-blue);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        .device-name {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .device-addr {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .rssi-tag {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            font-size: 0.7rem;
+            color: var(--neon-green);
+        }
+
+        .status-badge {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-connected {
+            background: var(--neon-green);
+            color: black;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .badge-bonded {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* --- Audio Gallery --- */
+        .audio-item {
+            background: var(--player-bg);
+            border: 1px solid var(--glass-border);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .audio-item span {
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            font-family: 'JetBrains Mono';
+        }
+
+        audio {
+            width: 100%;
+            height: 30px;
+            filter: invert(100%) hue-rotate(180deg) brightness(1.5);
+        }
+
+        .audio-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .download-link {
+            font-size: 0.75rem;
+            color: var(--neon-green);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* --- Action Grid --- */
+        .ops-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .op-button {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .op-button i {
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+        }
+
+        .op-button span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .op-button:hover {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--neon-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .op-button:active {
+            transform: translateY(0);
+        }
+
+        .op-button.danger:hover {
+            background: rgba(255, 62, 62, 0.1);
+            border-color: var(--neon-red);
+            box-shadow: 0 5px 20px rgba(255, 62, 62, 0.1);
+        }
+
+        .op-button.special:hover {
+            background: rgba(188, 19, 254, 0.1);
+            border-color: var(--neon-purple);
+            box-shadow: 0 5px 20px rgba(188, 19, 254, 0.1);
+        }
+
+        /* --- Console --- */
+        .console-container {
+            grid-column: 2 / 4;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            /* Enable vertical scrolling for the entire right panel */
+        }
+
+        .console-output {
+            min-height: 200px;
+            background: #000;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.5;
+            border: 1px solid #222;
+        }
+
+        .console-line {
+            margin-bottom: 4px;
+        }
+
+        .console-time {
+            color: var(--text-dim);
+            margin-right: 10px;
+        }
+
+        .console-tag {
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .tag-info {
+            color: var(--neon-blue);
+        }
+
+        .tag-success {
+            color: var(--neon-green);
+        }
+
+        .tag-error {
+            color: var(--neon-red);
+        }
+
+        .tag-warn {
+            color: var(--neon-purple);
+        }
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Spoof Controls --- */
+        .spoof-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--neon-purple);
+        }
+
+        .mini-btn {
+            background: var(--neon-purple);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: opacity 0.2s;
+        }
+
+        .mini-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* --- Hero Visual --- */
+        .hero-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hero-title h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #fff, var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">BLUET // OPS</div>
+        <div class="system-status">
+            <div class="status-item">
+                <div class="dot"></div>
+                <span>INTERLINK: OK</span>
+            </div>
+            <div class="status-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2">
+                    <rect x="1" y="6" width="18" height="12" rx="2" />
+                    <path d="M23 13v-2" />
+                </svg>
+                <span id="pwr-lvl">BATT: 98%</span>
+            </div>
+            <div class="status-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neon-blue)" stroke-width="2">
+                    <path d="M12 20h.01" />
+                    <path d="M8.5 16.5c3-2.5 4-2.5 7 0" />
+                    <path d="M5 13c7-5 7-5 14 0" />
+                    <path d="M2 9.5c10-7 10-7 20 0" />
+                </svg>
+                <span id="sig-lvl">SIG: -45dBm</span>
+            </div>
+            <div class="status-item">
+                <span id="platform-label">{{ platform }} MODE</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left: Radar & Scan -->
+        <div class="sidebar">
+            <div class="glass-panel">
+                <h2>Signal Radar
+                    <button class="mini-btn" style="padding: 2px 8px; font-size: 10px;"
+                        onclick="scan(false)">SCAN</button>
+                    <button class="mini-btn" style="padding: 2px 8px; font-size: 10px; background: var(--neon-blue);"
+                        onclick="scan(true)">DEEP</button>
+                </h2>
+                <div class="radar-container">
+                    <canvas id="radarCanvas" width="250" height="250"></canvas>
+                    <div class="radar-sweep"></div>
+                </div>
+                <div id="device-list">
+                    <!-- Devices populated here -->
+                    <div style="text-align: center; color: var(--text-dim); font-size: 0.9rem; padding: 20px;">
+                        Waiting for scan signal...
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <h2>Audio Intelligence <button class="mini-btn" style="padding: 2px 8px; font-size: 10px;"
+                        onclick="refreshRecordings()">REFRESH</button></h2>
+                <div id="recordings-list" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Recordings list -->
+                    <div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 10px;">No
+                        records yet.</div>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <h2>Spoof Identity</h2>
+                <div class="spoof-box">
+                    <input type="text" id="spoofName" placeholder="New Adapter Name...">
+                    <button class="mini-btn" onclick="spoof()">SET</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Dashboard -->
+        <div class="console-container">
+            <div class="hero-title">
+                <h1 id="active-target">SELECT TARGET NODE</h1>
+            </div>
+
+            <div class="ops-grid">
+                <!-- 1 -->
+                <div class="op-button special" onclick="recordAudio()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                        <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                    <span>Record Audio (Spy)</span>
+                </div>
+                <!-- 2 -->
+                <div class="op-button" onclick="dumpInfo()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <span>Dump Device Info</span>
+                </div>
+                <!-- 3 -->
+                <div class="op-button danger" id="dos-btn" onclick="toggleDos()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span>DoS Attack</span>
+                </div>
+                <!-- 4 -->
+                <div class="op-button" onclick="sdpBrowse()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                        <line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                    <span>Service Disc (SDP)</span>
+                </div>
+                <!-- 5 -->
+                <div class="op-button special" onclick="pairTarget()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 7l10 10M17 7L7 10" />
+                        <polyline points="6.5 12.5 12 7 12 17 6.5 11.5" />
+                    </svg>
+                    <span>Pair Target</span>
+                </div>
+                <!-- 6 -->
+                <div class="op-button danger" onclick="vulnScan()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <span>Vuln Scan</span>
+                </div>
+                <!-- 7 -->
+                <div class="op-button" onclick="loot('sms')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Dump SMS (MAP)</span>
+                </div>
+                <!-- 8 -->
+                <div class="op-button" onclick="loot('calls')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l2.29-2.29a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    <span>Dump Call Logs</span>
+                </div>
+                <!-- 9 -->
+                <div class="op-button danger" id="mute-btn" onclick="toggleMute()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <line x1="23" y1="9" x2="17" y2="15" />
+                        <line x1="17" y1="9" x2="23" y2="15" />
+                    </svg>
+                    <span>Mute Speaker</span>
+                </div>
+                <!-- 10 -->
+                <div class="op-button special" onclick="generateReport()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <span>Save Full Report</span>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="margin-top: 20px; flex: 1; display: flex; flex-direction: column;">
+                <h2>Tactical Console <button class="mini-btn" style="padding: 2px 8px; font-size: 10px;"
+                        onclick="clearConsole()">CLEAR</button></h2>
+                <div class="console-output" id="console">
+                    <div class="console-line"><span class="console-time">00:00:00</span> <span
+                            class="console-tag tag-info">[SYSTEM]</span> Kernel initialization complete.</div>
+                    <div class="console-line"><span class="console-time">00:00:01</span> <span
+                            class="console-tag tag-info">[SYSTEM]</span> Bluetooth Stack ready.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentTarget = null;
+        let currentTargetName = "";
+        let isDosRunning = false;
+        let isMuted = false;
+        let scanResults = [];
+
+        // --- Radar Logic ---
+        const canvas = document.getElementById('radarCanvas');
+        const ctx = canvas.getContext('2d');
+        const dots = [];
+
+        function drawRadar() {
+            ctx.clearRect(0, 0, 250, 250);
+
+            // Circles
+            ctx.strokeStyle = "rgba(0, 242, 255, 0.1)";
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                ctx.beginPath();
+                ctx.arc(125, 125, i * 30, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Crosshair
+            ctx.beginPath();
+            ctx.moveTo(125, 30); ctx.lineTo(125, 220);
+            ctx.moveTo(30, 125); ctx.lineTo(220, 125);
+            ctx.stroke();
+
+            // Draw Dots
+            dots.forEach(dot => {
+                ctx.fillStyle = `rgba(0, 255, 157, ${dot.alpha})`;
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pulsing ring
+                ctx.strokeStyle = `rgba(0, 255, 157, ${dot.alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 4 + (1 - dot.alpha) * 10, 0, Math.PI * 2);
+                ctx.stroke();
+
+                dot.alpha -= 0.005;
+                if (dot.alpha <= 0) {
+                    dot.x = 125 + (Math.random() - 0.5) * 200;
+                    dot.y = 125 + (Math.random() - 0.5) * 200;
+                    dot.alpha = 1;
+                }
+            });
+
+            requestAnimationFrame(drawRadar);
+        }
+
+        // Initialize some random dots for visual
+        for (let i = 0; i < 3; i++) {
+            dots.push({
+                x: 125 + (Math.random() - 0.5) * 180,
+                y: 125 + (Math.random() - 0.5) * 180,
+                alpha: Math.random()
+            });
+        }
+        drawRadar();
+
+        // --- Core Functions ---
+
+        function log(msg, type = 'info') {
+            const consoleBox = document.getElementById('console');
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const line = document.createElement('div');
+            line.className = 'console-line';
+
+            let tagColor = type;
+            if (type === 'healing') tagColor = 'warn'; // Reuse warn color or add custom
+
+            line.innerHTML = `<span class="console-time">${time}</span> <span class="console-tag tag-${tagColor}">[${type.toUpperCase()}]</span> ${msg}`;
+            consoleBox.appendChild(line);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+            log("Tactical console cleared.", "info");
+        }
+
+        async function callApi(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                const data = await res.json();
+                if (data.status === 'healing') {
+                    log(data.message, "healing");
+                    return null;
+                }
+                if (data.status === 'error') {
+                    log(data.message, "error");
+                }
+                return data;
+            } catch (e) {
+                log(`Network Error: ${e.message}`, "error");
+                return { status: "error", message: e.message };
+            }
+        }
+
+        async function scan(isDeep = false) {
+            log(isDeep ? "Initiating deep multispectral RF scan (15s)..." : "Broadcasting discovery packets...", "info");
+            document.getElementById('device-list').innerHTML = `<div style="text-align: center; color: var(--neon-blue); padding: 20px;">${isDeep ? 'Deep Scanning...' : 'Scanning airwaves...'}</div>`;
+
+            const devices = await callApi(`/scan${isDeep ? '?deep=true' : ''}`);
+            if (!devices || devices.status === 'error') return;
+            scanResults = devices;
+
+            const list = document.getElementById('device-list');
+            list.innerHTML = "";
+
+            if (devices.length === 0) {
+                list.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 20px;">No devices found.</div>`;
+                return;
+            }
+
+            devices.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'device-card';
+                card.onclick = () => selectTarget(d.address, d.name);
+                card.id = `dev-${d.address.replace(/:/g, '')}`;
+
+                let badge = "";
+                if (d.connected) badge = '<span class="status-badge badge-connected">CONNECTED</span>';
+                else if (d.bonded) badge = '<span class="status-badge badge-bonded">BONDED</span>';
+
+                card.innerHTML = `
+                        ${badge}
+                        <span class="device-name">${d.name || 'Unknown'}</span>
+                        <span class="device-addr">${d.address}</span>
+                        <span class="rssi-tag">${d.rssi} dBm</span>
+                    `;
+                list.appendChild(card);
+            });
+
+            log(`${isDeep ? 'Deep Scan' : 'Scan'} complete. ${devices.length} nodes detected.`, "success");
+        }
+
+        function selectTarget(addr, name) {
+            currentTarget = addr;
+            currentTargetName = name;
+
+            // UI Update
+            document.querySelectorAll('.device-card').forEach(c => c.classList.remove('active'));
+            const activeCard = document.getElementById(`dev-${addr.replace(/:/g, '')}`);
+            if (activeCard) activeCard.classList.add('active');
+
+            document.getElementById('active-target').innerText = name.toUpperCase();
+            log(`Locked target: ${name} [${addr}]`, "warn");
+        }
+
+        async function pairTarget() {
+            if (!checkTarget()) return;
+            log(`Initiating secure pairing with ${currentTargetName}...`, "info");
+            const data = await callApi('/pair', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: currentTarget })
+            });
+            if (data && data.status === 'success') log(data.message, "success");
+        }
+
+        async function recordAudio() {
+            if (!checkTarget()) return;
+            log(`Activating remote microphone spy on ${currentTargetName}...`, "warn");
+            const data = await callApi('/record_audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: currentTarget })
+            });
+            if (data && data.status !== 'error') log(data.message, 'success');
+        }
+
+        async function toggleMute() {
+            if (!checkTarget()) return;
+            const btn = document.getElementById('mute-btn');
+            const action = isMuted ? 'unmute' : 'mute';
+
+            log(`${action === 'mute' ? 'Silencing' : 'Restoring'} remote speaker on ${currentTargetName}...`, "warn");
+
+            const data = await callApi('/disrupt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: currentTarget, action: action })
+            });
+
+            if (data && data.status === 'success') {
+                isMuted = !isMuted;
+                btn.querySelector('span').innerText = isMuted ? "Unmute Speaker" : "Mute Speaker";
+                if (isMuted) btn.classList.add('active'); else btn.classList.remove('active');
+                log(data.message, "success");
+            }
+        }
+
+        async function dumpInfo() {
+            if (!checkTarget()) return;
+            log(`Dumping hardware specifications for ${currentTargetName}...`, "info");
+            const data = await callApi(`/info?address=${currentTarget}`);
+            if (data && data.status === 'success') log(`DEVICE_INFO_DUMP:\n` + data.data, "success");
+        }
+
+        async function toggleDos() {
+            if (!checkTarget()) return;
+            const btn = document.getElementById('dos-btn');
+            const action = isDosRunning ? 'stop' : 'start';
+
+            log(`${action === 'start' ? 'Launching' : 'Ceasing'} L2CAP Flood on ${currentTarget}...`, action === 'start' ? 'error' : 'info');
+
+            try {
+                const res = await fetch('/dos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: currentTarget, action: action })
+                });
+                const data = await res.json();
+
+                isDosRunning = (action === 'start' && data.status !== 'error');
+                btn.querySelector('span').innerText = isDosRunning ? "STOP DOS" : "DoS Attack";
+                if (isDosRunning) btn.classList.add('active'); else btn.classList.remove('active');
+
+                log(data.message, isDosRunning ? 'error' : 'info');
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        async function sdpBrowse() {
+            if (!checkTarget()) return;
+            log(`Interrogating SDP services for ${currentTarget}...`, "info");
+            try {
+                const res = await fetch(`/sdp?address=${currentTarget}`);
+                const data = await res.json();
+                log("SDP DUMP:\n" + data.data, "success");
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        async function vulnScan() {
+            if (!checkTarget()) return;
+            log(`Performing CVE cross-reference for ${currentTargetName}...`, "warn");
+            try {
+                const res = await fetch(`/vuln`);
+                const data = await res.json();
+                log("VULNERABILITY ASSESSMENT:\n" + data.data, "warn");
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        async function loot(type) {
+            if (!checkTarget()) return;
+            log(`Attempting secure data extraction (${type.toUpperCase()}) from ${currentTarget}...`, "warn");
+            try {
+                const res = await fetch(`/loot?address=${currentTarget}&type=${type}`);
+                const data = await res.json();
+                log(`${type.toUpperCase()} EXTRACTION SUCCESS:\n` + data.data, "success");
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        async function generateReport() {
+            if (!checkTarget()) return;
+            log("Compiling tactical mission report...", "info");
+            try {
+                const res = await fetch('/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: currentTarget, name: currentTargetName })
+                });
+                const data = await res.json();
+                log(data.message, "success");
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        async function spoof() {
+            const name = document.getElementById('spoofName').value;
+            if (!name) return;
+            log(`Reprogramming local adapter identity to '${name}'...`, "warn");
+            try {
+                const res = await fetch('/spoof', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name })
+                });
+                const data = await res.json();
+                log(data.message, data.status === 'error' ? 'error' : 'success');
+            } catch (e) { log(e.message, 'error'); }
+        }
+
+        function checkTarget() {
+            if (!currentTarget) {
+                log("Abort: No target node selected.", "error");
+                return false;
+            }
+            return true;
+        }
+
+        function scrollToRadar() {
+            document.querySelector('.radar-container').scrollIntoView({ behavior: 'smooth' });
+            log("Visual Radar active.", "success");
+        }
+
+        async function refreshRecordings() {
+            const files = await callApi('/recordings');
+            if (!files || files.status === 'error') return;
+
+            const list = document.getElementById('recordings-list');
+            list.innerHTML = "";
+
+            if (files.length === 0) {
+                list.innerHTML = `<div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 10px;">No records yet.</div>`;
+                return;
+            }
+
+            files.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'audio-item';
+                item.innerHTML = `
+                    <span>${f}</span>
+                    <audio controls>
+                        <source src="/download/${f}" type="audio/mp4">
+                    </audio>
+                    <div class="audio-actions">
+                        <a href="/download/${f}" download class="download-link">DOWNLOAD_INTEL</a>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Auto-scan on load and every 30 seconds
+        window.onload = () => {
+            log("BlueT Environment Loaded. Ready for operations.", "success");
+            scan();
+            refreshRecordings();
+
+            setInterval(scan, 20000); // Background scan every 20s
+            setInterval(refreshRecordings, 10000); // Refresh recordings every 10s
+
+            // Fetch Real-time metrics
+            setInterval(async () => {
+                const data = await callApi('/status');
+                if (data) {
+                    document.getElementById('pwr-lvl').innerText = `BATT: ${data.battery}%`;
+                    // Signal is still simulated or could be added to /status if hcitool rssi works
+                    const sig = -40 - Math.floor(Math.random() * 20);
+                    document.getElementById('sig-lvl').innerText = `SIG: ${sig}dBm`;
+                }
+            }, 5000);
+        };
+
+    </script>
+</body>
+
+</html>
